@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<!-- styles -->
+
+<style>
+    .book_of_owner_image{
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+    }
+    .profile{
+        text-decoration: none;
+        color: #007185;
+        font-size: 13px;
+        font-weight: 700;
+    }
+    .profile:hover{
+        color: #c7511f;
+    }
+    .book_of_name{
+        color: #007185;
+    }
+    .book_of_name:hover{
+        color: #c7511f;
+    }
+    .book_of_footer{
+        color: #007185;
+    }
+
+    .time-book{
+        font-size: 12px;
+        color: #0f1111;
+        font-weight: 600;
+    }
+    .active_users{
+        font-size: 16px;
+        font-weight: 700;
+        color: #565959;
+    }
+    .icons{
+        font-size: 14px;
+        font-weight: 700;
+    }
+    .rating-img{
+        width: 150px;
+    }
+    .rating-img_2{
+        width: 100px;
+    }
+
+    .dropdown_btn{
+        border: none;
+        background-color: inherit;
+    }
+
+    .global_rating{
+        color: #007185;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .menu{
+        width: 300px;
+    }
+    .parent_back{
+        border: 1px solid #007185;
+        width: 100%;
+        margin: 0 10px;
+        border-radius: 5px;
+    }
+    .child_back{
+        background-color: yellow;
+        color: yellow;
+    }
+    .give_me_margin{
+        margin-bottom: 100px;
+    }
+
+    .questions_book{
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+    }
+    .roobot{
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+       
+    }
+    .roobot_back{
+        background-color: antiquewhite;
+        padding: 7px;
+        border-radius: 10px;
+    }
+    .text_robot{
+        font-size: 12px;
+        font-weight: 700;
+
+    }
+    .question_question_max_h{
+        max-height: 300px;
+    }
+
+ 
+    
+</style>
+
+
+<!-- / styles -->
+
+    <!-- for tags small screen -->
+        <div class="d-sm-block d-md-none ms-4">
+            <a href="{% url 'home' %}?q=all" class="profile pe-3">
+                Barliq kitaplar
+            </a>
+            {% for tag in tags %}
+                <a href="{% url 'home' %}?q={{ tag.title }}" class="profile pe-3">{{ tag.title }} <span class="badge bg-primary">{{ tag.count_book }}</span></a>
+            {% endfor %}
+        </div>
+
+    <!-- // small screen -->
+
+    <div class="row mt-3">
+        <div class="col-md-3">
+            
+            <div class="list-group d-md-block d-none">
+                <a href="{% url 'home' %}?q=all" class="list-group-item list-group-item-action active" aria-current="true">
+                  Barliq kitaplar
+                </a>
+                {% for tag in tags %}
+                <div class="d-flex justify-content-between align-items-start list-group-item">
+                    <a href="{% url 'home' %}?q={{ tag.title }}" class="text-decoration-none book_of_name">{{ tag.title }}</a>
+                    <span class="badge bg-primary rounded-pill">{{ tag.count_book }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+        </div>
+        <div class="col-sm-8 col-md-7">
+            <div class="row g-3 justify-content-md-center">
+                {% for book in books %}
+                <div class="p-2 me-1 col-lg-5 col-md-10 col-sm-12 card shadow">
+                    <img  src="{{ book.image.url }}" class="rounded card-img-top book-image  img-thumbnail" alt="{{ book.name }}">
+                    <div class="card-body">
+                        <a href="{% url 'book:detail' book.pk %}" class="text-decoration-none book_of_name">
+                            <h6 class="card-title text-center"><strong>{{ book.name }}</strong></h6>
+                        </a>
+                        
+                        <!-- Star Rating -->
+
+
+                        {% if book.get_star_protsent == 0 %}
+                        <div class="dropdown">
+                            <button class="book_of_name dropdown_btn dropdown-toggle"  data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{% static '0-rating.png'%}" class="rating-img" alt="rating">
+                                <span class="ms-2 fs-6">{{ book.get_star_users_count }}</span>
+                            </button>
+                            <div class="dropdown-menu menu p-3">
+                                <h6 class="time-book"><img src="{% static '0-rating.png'%}" class="rating-img_2" alt="rating">0 out of 5</h6>
+                                <h4 class="global_rating">0 global ratings</h4>
+                                <div>
+                                    <a class="dropdown-item d-flex justify-content-between" href="#">
+                                        <span>5 star</span>
+                                        <div class="parent_back" >
+                                           
+                                        </div>
+                                        <span>0 %</span>
+                                    </a>
+                                    <a class="dropdown-item d-flex justify-content-between" href="#">
+                                        <span>4 star</span>
+                                        <div class="parent_back">
+                                            
+                                        </div>
+                                        <span>0 %</span>
+                                    </a>
+                                    <a class="dropdown-item d-flex justify-content-between" href="#">
+                                        <span>3 star</span>
+                                        <div class="parent_back">
+                                          
+                                        </div>
+                                        <span>0 %</span>
+                                    </a>
+                                    <a class="dropdown-item d-flex justify-content-between" href="#">
+                                        <span>2 star</span>
+                                        <div class="parent_back">
+                                        
+                                        </div>
+                                        <span>0 %</span>
+                                    </a>
+                                    <a class="dropdown-item d-flex justify-content-between" href="#">
+                                        <span>1 star</span>
+                                        <div class="parent_back">
+
+                                        </div>
+                                        <span>0 %</span>
+                                    </a>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        {% elif book.get_star_protsent < 1.5 %}
+                            <div class="dropdown">
+                                <button class="book_of_name dropdown_btn dropdown-toggle"  data-bs-toggle="dropdown" aria-expanded="false">
+                                    {% if book.get_star_protsent < 2 %}
+                                        <img src="{% static '0.5-rating.png'%}" class="rating-img" alt="rating">
+                                    {% elif book.get_star_protsent < 3%}
+                                        <img src="{% static '2.5-rating.png'%}" class="rating-img" alt="rating">
+                                    {% elif book.get_star_protsent < 4 %}
+                                        <img src="{% static '3.5-rating.png'%}" class="rating-img" alt="rating">
+                                    {% elif book.get_star_protsent < 5 %}
+                                        <img src="{% static '4.5-rating.png'%}" class="rating-img" alt="rating">
+                                    {% endif %}
+                                    
+                                    <span class="ms-2 fs-6">{{ book.get_star_users_count }}</span>
+                                </button>
+                                <div class="dropdown-menu menu p-3">
+                                    <h6 class="time-book"><img src="{% static '0.5-rating.png'%}" class="rating-img_2" alt="rating">{{ book.get_star_protsent}} out of 5</h6>
+                                    <h4 class="global_rating">{{ book.get_star_users_count}} global ratings</h4>
+                                    <div>
+                                        <a class="dropdown-item d-flex justify-content-between" href="#">
+                                            <span>5 star</span>
+                                            <div class="parent_back" >
+                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
+                                                    {% if book.get_five_star == 0 %}  {% else %} i {% endif %}
+                                                </div>
+                                            </div>
+                                            <span>{{ book.get_five_star }}%</span>
+                                        </a>
+                                        <a class="dropdown-item d-flex justify-content-between" href="#">
+                                            <span>4 star</span>
+                                            <div class="parent_back">
+                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
+                                                    {% if book.get_four_star == 0 %}  {% else %} i {% endif %}
+                                                </div>
+                                            </div>
+                                            <span>{{ book.get_four_star }}%</span>
+                                        </a>
+                                        <a class="dropdown-item d-flex justify-content-between" href="#">
+                                            <span>3 star</span>
+                                            <div class="parent_back">
+                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
+                                                    {% if book.get_three_star == 0 %}  {% else %} i {% endif %}
+                                                </div>
+                                            </div>
+                                            <span>{{ book.get_three_star }}%</span>
+                                        </a>
+                                        <a class="dropdown-item d-flex justify-content-between" href="#">
+                                            <span>2 star</span>
+                                            <div class="parent_back">
+                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
+                                                    {% if book.get_two_star  == 0 %}  {% else %} i {% endif %}
+                                                </div>
+                                            </div>
+                                            <span>{{ book.get_two_star }}%</span>
+                                        </a>
+                                        <a class="dropdown-item d-flex justify-content-between" href="#">
+                                            <span>1 star</span>
+                                            <div class="parent_back">
+                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
+                                                    {% if book.get_one_star == 0 %}  {% else %} i {% endif %}
+                                                </div>
+                                            </div>
+                                            <span>{{ book.get_one_star }}%</span>
+                                        </a>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        {% endif %}
+          
+
+
+                        <!-- /Star Rating -->
+                        
+                        
+                            <blockquote class="blockquote mb-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'myaccount:my-account' book.owner.pk%}" class="profile">
+                                        <img src="{{ book.owner.profile_img.url}}" class="book_of_owner_image" alt="{{ book.owner.username}}">
+                                        <span >@{{ book.owner.username}}</span>
+                                    </a>
+                                    <small class="time-book">
+                                        {{book.created|timesince}} ago
+                                    </small>
+                                
+                                </div>
+                                <footer class="blockquote-footer mt-3"><cite title="Source Title">{{ book.feedback }}</cite></footer>
+                            </blockquote>
+                        
+                    </div>
+                    <div class="card-footer d-flex justify-content-around">
+                        <div class="">
+                            <a href="{% url 'download_as_pdf' book.name %}" class="book_of_footer me-3"><i class="fa-solid fa-download fs-5"></i></a>
+                            <p class="icons">download</p>
+                        </div>
+                        <div>
+                            <a href="" class="book_of_footer me-3"><i class="fa-solid fa-share fs-5"></i></a>
+                            <p class="icons">share</p>
+                        </div>
+                        <div>
+                            
+                            <a href="{% url 'myaccount:save' request.user book.name%}" class="book_of_footer me-3"><i class="fa-regular fa-bookmark fs-5"></i></a>
+                            <p class="icons">save</p>
+                           
+                          
+                        </div>
+                     
+                        <div>
+                            <a href="#" class="book_of_footer me-3"><i class="fa-regular fa-eye fs-5"></i></a>
+                            <p class="icons">{% if book.count_views > 1%} views {% else %} view {% endif %} {{ book.count_views}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% empty %}
+                    <h3>No Books</h3>
+                {% endfor %}
+            </div>
+            <div class="justify-content-center mt-5">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        {% if books.has_previous %}
+                      <li class="page-item"><a class="page-link" href="{% url 'home'%}?page={{books.previous_page_number}}">Previous</a></li>
+                      {% endif %}
+                      <li class="page-item"><a class="page-link" >Page {{ books.number }} of {{ books.paginator.num_pages }}</a>{{ pages }}</li>
+                     
+                      {% if books.has_next %}
+                      <li class="page-item"><a class="page-link" href="{% url 'home'%}?page={{books.next_page_number}}">Next</a></li>
+                      {% endif %}
+                    </ul>
+                  </nav>
+            </div>
+        </div>
+
+        <div class="col-md-2 col-sm-4 ">
+            <div class="card p-2">
+                <p class="text-center active_users">Active paydalaniwshilar</p>
+                {% for active in active_users %}
+                <a href="{% url 'myaccount:my-account' active.pk%}" class="profile mb-3">
+                    <img src="{{ active.profile_img.url}}" class="book_of_owner_image" alt="{{ active.username}}">
+                    <span>@{{ active.username}}</span>
+                </a>
+                        
+                {% endfor %}
+
+
+            </div>
+
+
+            <!-- RoBoT Process -->
+            <div class="position-fixed mt-3  d-sm-none d-md-block">
+                <a href="" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight">
+                    <img class="questions_book position-relative" src="{% static 'questions.webp'%}" alt="about">
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-6">
+                        {{ count }}
+                    </span>
+                </a>
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title font-monospace text-center" id="offcanvasRightLabel" >{% if message.welcome %} {{ message.welcome }} {% else %} My Social Book {% endif %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body text-bg-light ">
+                    {% if robot == None%}
+                        <div class="roobot_back mb-2">
+                            <img class="roobot" src="{% static 'robot.jpg'%}" alt="robot">
+                            <span class="text-muted font-monospace text_robot">{{ message.robot }}. {{ message.help }}!!</span>
+                        </div>
+                        <div class="roobot_back">
+                            <img class="roobot" src="{% static 'robot.jpg'%}" alt="robot">
+                            <span class="text-muted font-monospace text_robot">{{ message.ask }}</span>
+                            
+                        </div>
+                        <div>
+                            <div class="" id="close_yes_no">
+                                <p class="btn btn-outline-success mt-2" id="yes_btn">Yes</p>
+                                <p class="btn btn-outline-danger mt-2" id="no_btn">No</p>
+                            </div>
+                            <!-- login -->
+                            <div class="">
+                                <div id="message_login" class="">
+                                </div>
+                                <a href="{% url 'account:login'%}" class="d-none btn btn-success mt-2" id="login_page">Login</a>
+                                <a href="{% url 'account:register'%}" class="d-none btn btn-primary mt-2" id="create_account_btn">Create an account</a>
+                            </div>
+                        </div>
+                        
+                    {% endif %}
+                    {% if robot == False %}
+                        <div class="roobot_back mb-2">
+                            <img class="roobot" src="{% static 'robot.jpg'%}" alt="robot">
+                            <span class="text-muted font-monospace text_robot">HI {{ request.user.username }}! Are you looking for a book?<br> Do you wanna ask question?</span>
+                        </div>
+                        <div>
+                            <form action="{% url 'question:question'%}" method="post">
+                                {% csrf_token %}
+                                <input type="text" class="form-control" placeholder="What kind of book are you looking for?" name="question">
+                                <button type="submit" class="mt-2 btn btn-success">Send</button>
+                            </form>
+                        </div>
+                        {% if questions %}
+                        <div>
+                            <div class="roobot_back mb-2 mt-2">
+                                <img class="roobot" src="{% static 'robot.jpg'%}" alt="robot">
+                                <span class="text-muted font-monospace text_robot">{{ message.question}}</span>
+                            </div>
+                            <div class="overflow-auto question_question_max_h">
+                                {% for question in questions %}
+
+                                <img class="roobot" src="{{ question.user.profile_img.url }}" alt="robot">
+                                <span class="profile">@{{ question.user.username }}</span>
+                                <small class="font-monospace ms-3">{{ question.created|timesince}} ago</small>
+                                <p class="text-muted font-monospace">
+                                    {{ question.question }}
+                                </p>
+                                <p onclick="AnswerToggleFunc('{{question.pk}}')" class="font-monospace btn btn-outline-dark">Answer</p>
+                                <!-- answer form -->
+                                <div class="d-none" id="{{ question.pk }}">
+                                    <form action="{% url 'question:answer'%}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="question" value="{{ question.pk }}">
+                                        <input type="text" name="answer" placeholder="Answer this question...." class="form-control">
+                                        <button class="btn btn-success mt-2">Answer</button>
+                                    </form>
+                                </div>
+                                <hr>
+
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        {% endif %}
+
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+    </div>
+    
+
+    <div class="give_me_margin"></div>
+
+
+
+    <script>
+        const yes_button = document.getElementById('yes_btn')
+        const no_button = document.getElementById('no_btn')
+        const close_yes_no_button = document.getElementById('close_yes_no')
+
+        const create_account_btn = document.getElementById('create_account_btn')
+        // Yes button this page show us login url
+        if (yes_button){
+            yes_button.addEventListener('click', (e)=>{
+            const message = `
+                        <div class="roobot_back mt-2">
+                            <img class="roobot" src="{% static 'robot.jpg'%}" alt="robot">
+                            <span class="text-muted font-monospace text_robot">Please login here....!!</span>
+                            
+                        </div>
+            `
+            document.getElementById('message_login').innerHTML += message
+            
+            document.getElementById('login_page').classList.remove('d-none')
+            
+
+            setTimeout(() =>{
+                document.getElementById('message_login').innerHTML = ''
+            }, 5000)
+
+            close_yes_no_button.classList.add('d-none')
+        })
+        }
+        
+
+
+        // No button this page shows us to signup url 
+        if (no_button){
+            no_button.addEventListener('click', (e)=>{
+            const message = `
+                        <div class="roobot_back mt-2">
+                            <img class="roobot" src="{% static 'robot.jpg'%}" alt="robot">
+                            <span class="text-muted font-monospace text_robot">Sign up here...</span>
+                            
+                        </div>
+            `
+            document.getElementById('message_login').innerHTML += message
+            
+            create_account_btn.classList.remove('d-none')
+
+            setTimeout(() =>{
+                document.getElementById('message_login').innerHTML = ''
+            }, 5000)
+
+            close_yes_no_button.classList.add('d-none')
+
+            
+
+        })
+        }
+
+        // create
+
+
+        // answer
+        function AnswerToggleFunc(question_pk){
+            const row = document.getElementById(question_pk)
+            if (row.classList.contains('d-none')){
+                row.classList.remove('d-none')
+            }else{
+                row.classList.add('d-none')
+        }
+        }
+
+
+
+    </script>
+{% endblock content %}

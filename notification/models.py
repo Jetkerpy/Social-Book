@@ -13,6 +13,7 @@ class Notification(models.Model):
         (2, 'COMMENT'),
         (3, 'FOLLOW'),
         (4, 'MESSAGE'),
+        (5, 'DISCUSS')
 
     )
     sender = models.ForeignKey(Account, related_name='sender', blank=True, null=True, on_delete=models.SET_NULL)
@@ -30,7 +31,7 @@ class Notification(models.Model):
 
 
     def __str__(self):
-        return f'receiver: {self.receiver.username}'
+        return f'receiver: {self.receiver.username} types is {self.notification_types}'
 
 
 

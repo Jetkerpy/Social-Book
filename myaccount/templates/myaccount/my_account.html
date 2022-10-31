@@ -117,6 +117,14 @@
         border-radius: 4px;
 
     }
+    .discussion_book_image{
+        margin-top: 10px;
+        margin-left: 5px;
+        width: 100px;
+        height: 100px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
   
    
 </style>
@@ -314,6 +322,7 @@
                                                 </div>
                                                 <div class="col-sm-12 mt-2">
                                                     <div class="message_from_user">
+                                                        
                                                         {% if chats %}
                                                         {% for chat in chats %}
 
@@ -324,8 +333,13 @@
                                                                 <small class="chat_sender_message">{{ chat.sender }}</small>  <small class="chat_time">{{ chat.time|timesince}} ago</small>
                                                             </p>
                                                             <p class="font-monospace chat_body">{{ chat.body }}</p>
+                                                            
                                                             <hr>
                                                         {% endfor %}
+                                                        
+                                                        {% else %}
+                                                            <p class="font-monospace">No messages yet...</p>
+
                                                         {% endif %}
                                                     </div>
                                                     
@@ -353,6 +367,24 @@
                             </div>
                         </div>
                         {% endif %}
+
+                        <!-- Create Rooom for discuss about book -->
+                        {% if my_account.account == request.user %}
+                        <div class="my-4 ms-3">
+                            <button  onclick="ClickMePlease()" class="btn btn-outline-dark">Create a discussion space</button>
+                            <div id="remove_d_none" class="d-none">
+                                <p class="text-center font-monospace mt-3">Which of these books do you want to start discussing?But the discussion rule, for example, if you create a discussion room, at least three people have accepted one of these books or five people have already agreed to discuss, then the room is automatically created and mentioned to you as ready for discussion!</p>
+                                {% for book in boooks %}
+                                    <img id="{{ book.pk }}"   onclick="ImageFuncktion('{{ book.get_discuss }}', '{{ book.pk }}')" class="discussion_book_image" src="{{ book.image.url }}" alt="{{ book.name }}">
+                                    {% empty %}
+                                    <p class="text-center font-monospace text-danger mt-2">You do not have permission to create a discussion room due to the lack of a book</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div id="show_message" class="text-center font-monospace">
+                            
+                       </div>
                         
                     </div>
                     <div class="col-md-4 col-sm-12">
@@ -369,6 +401,8 @@
                             {% empty %}
                             <p>No Friend yet...</p>
                        {% endfor %}
+
+                       
                     </div>
                 </div>
             </div>
@@ -461,7 +495,8 @@
         
     }
 
-    send_message_btn.addEventListener('click', (e)=>{
+    if ( send_message_btn){
+        send_message_btn.addEventListener('click', (e)=>{
         const data = document.getElementById('message-text').value.trim()
         if (data !== '' && friend_name.value !== ''){
       
@@ -489,9 +524,75 @@
         }       
         document.getElementById('message_form').reset()
     })
+    }
+
+    
+
+
+    // Create room for discuss
+
+    function ClickMePlease(){
+        const remove_d_none = document.getElementById('remove_d_none')
+        if (remove_d_none.classList.value === 'd-none'){
+            remove_d_none.classList.remove('d-none')
+        }else{
+            remove_d_none.classList.add('d-none')
+        }
+    }
+
+    function ImageFuncktion(count, book_pk){
+        const message = document.getElementById('show_message')
+        if (count === '0'){
+            message.textContent = "You can't create a discussion space because no one in this book has a discussion person. You need at least 3 people to discuss"
+            message.style.backgroundColor = 'red'
+            message.style.borderRadius = '9px'
+            message.style.color = 'white'
+
+            setTimeout(()=>{
+                message.textContent = ''
+            }, 6000)
+        } else if(Number(count) < 3){
+            let num = Number(count)
+            message.textContent = `You need only ${3 - num} person to discuss!`
+            message.style.backgroundColor = 'yellow'
+            message.borderRadius = '9px'
+            message.style.color = 'black'
+
+            setTimeout(() =>{
+                message.textContent = ''
+            }, 5000)
+        }else if (Number(count) >= 3){
+            let data = {'book_pk': book_pk, 'count': count}
+
+            message.textContent = 'Successfuly created room!!'
+            message.style.backgroundColor = 'green'
+            message.borderRadius = '9px'
+            message.style.color = 'white'
+
+            setTimeout(() =>{
+                message.textContent = ''
+            }, 5000)
+
+            $.ajax({
+            type: 'GET',
+            data: data,
+            url: "{% url 'chat:create-room'%}",
+
+
+            
+        })
+
+
+        }
 
 
 
+
+        // console.log('counting: ',typeof(count))
+        // // console.log('boook id: ', book_pk)
+        
+     
+    }
 
 
 </script>

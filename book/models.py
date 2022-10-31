@@ -42,6 +42,13 @@ class Book(models.Model):
 
 
 
+
+
+
+
+
+
+
     #views as how many people checked this book
     #like
     #dislike

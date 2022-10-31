@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from .models import Notification
 from account.models import Account
 from myaccount.models import MyAccount
+from chat.models import DiscussBook
+
 
 from django.contrib import messages
 
@@ -20,7 +22,7 @@ def notification_view(request, *args, **kwargs):
         account = Account.objects.get(pk = pk)
         notification_receiver = Notification.objects.filter(receiver = account, is_seen = False).order_by('-created')
 
-    
+
 
 
         #Bul jerde notification bir korgennen keyin is_seen = True
@@ -36,6 +38,27 @@ def notification_view(request, *args, **kwargs):
                     noti.is_seen = True
                     noti.save()
 
+
+                if noti.is_seen == False and noti.notification_types == 4:
+                    noti.is_seen = True
+                    noti.save()
+
+
+        #this is be aware when someone's discussion room timer out 
+        discuss = DiscussBook.objects.filter(is_ready = True, is_start = False)
+
+        count = 0
+        
+        if discuss.count() == 0:
+            count = 0
+
+        else:
+            count = 1
+
+     
+    
+
+        
         
 
 
@@ -50,7 +73,9 @@ def notification_view(request, *args, **kwargs):
     
     
     context = {
-        'notifications': notification_receiver
+        'notifications': notification_receiver,
+        'count': count,
+        
     }
     
 

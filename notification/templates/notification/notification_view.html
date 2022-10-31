@@ -130,6 +130,48 @@
 
                 {% endif %}
 
+                {% if noti.notification_types == 5 %}
+                        
+                    
+                        <div class="row mt-3 justify-content-center">
+                            <div class="sender_profile text-center col-md-5 col-sm-12">
+                                {% if noti.book.image %}
+                                    <img class="book_image" src="{{ noti.book.image.url }}" alt="{{ noti.book.name}}">
+                                {% endif %}
+                                
+                                <p class="noti_message text-center">"{{ noti.book.name }}" discussion yag'niy oz-ara pikir almasiw ushin kitap!!</p>
+                                <small class="ms-3">{{ noti.updated|timesince}} ago</small>
+                            </div>
+                            <div class="message col-md-5 col-sm-12 ">
+                                <div class="text-center font-monospace">
+                                    {{ noti.message_text }}
+                                </div>
+                                <div class="mt-2 font-monospace text-center" id="message_error">
+                                
+                                </div>
+                                <div class="form mt-4">
+                                    <input data-book_name="{{ noti.book.name }}" id="time" type="time" class="form-control" placeholder="Time....">
+                                    <input id="date" type="date" class="form-control mt-2" placeholder="Date....">
+                                    {% if count == 0 %}
+                                        <button id="btn_save" class="btn btn-outline-success mt-2" type="submit">Save</button>
+                                    {% else %}
+                                        <button id="btn_save_disabled" class="btn btn-outline-success mt-2" type="submit">Save</button>
+                                    {% endif %}
+
+                                    <div id="messaage" class="d-none font-monospace">
+                                            Please, right now you can't add time because of we have discussion room to Home page when timer out so you able to add time!!
+                                    </div>
+
+                                </div>
+                                
+                            </div>
+                        </div>
+                    
+                   
+
+
+                {% endif %}
+
 
 
 
@@ -161,7 +203,8 @@
         const input = document.getElementById('input')
         const input2 = document.getElementById('input2')
 
-        accept.addEventListener('click', (e)=>{
+        if (accept){
+            accept.addEventListener('click', (e)=>{
             const data = {receiver: input.value, sender: input2.value}
 
             $.ajax({
@@ -178,8 +221,11 @@
             })
             add_hidden.classList.add('hidden')
         })
-
-        cancel.addEventListener('click', (e)=>{
+        }
+        
+        
+        if (cancel){
+            cancel.addEventListener('click', (e)=>{
             const data = {receiver: input.value, sender: input2.value}
             $.ajax({
                 type: 'GET',
@@ -197,6 +243,98 @@
             add_hidden.classList.add('hidden')
 
         })
+        }
+
+
+        const btn_save = document.getElementById('btn_save')
+        const message = document.getElementById('message_error')
+
+        if (btn_save){
+            btn_save.addEventListener('click', (e)=>{
+                const time = document.getElementById('time').value
+                const date = document.getElementById('date').value
+                const book_name = document.getElementById('time').getAttribute('data-book_name')
+
+                
+                
+
+                if (date !== '' && time !==''){
+                    message.textContent = 'Successfully saved!'
+                    message.style.backgroundColor = 'green'
+                    message.style.borderRadius = '7px'
+                    message.style.color = 'white'
+
+                    setTimeout(()=>{
+                        message.textContent = ''
+                    }, 3000)
+
+                    $.ajax({
+                        type: 'GET',
+                        url: "{% url 'chat:start-discuss'%}",
+                        data: {
+                            'book_name': book_name,
+                            'time': time,
+                            'date': date
+                        },
+                        success: function(success){
+                            console.log(success)
+                        },
+                        error: function(error){
+                            console.log(error)
+                        }
+                    })
+
+
+
+
+
+
+
+
+                } else if (date === '' && time === ''){
+                    message.textContent = 'You can\'t save without time and date!'
+                    message.style.backgroundColor = 'red'
+                    message.style.borderRadius = '7px'
+                    message.style.color = 'white'
+
+                    setTimeout(()=>{
+                        message.textContent = ''
+                    }, 3000)
+                } else if (time === ''){
+                    message.textContent = 'You can\'t save without time!'
+                    message.style.backgroundColor = 'red'
+                    message.style.borderRadius = '7px'
+                    message.style.color = 'white'
+
+                    setTimeout(()=>{
+                        message.textContent = ''
+                    }, 3000)
+                }else if (date === ''){
+                    message.textContent = 'You can\'t save without date!'
+                    message.style.backgroundColor = 'red'
+                    message.style.borderRadius = '7px'
+                    message.style.color = 'white'
+
+                    setTimeout(()=>{
+                        message.textContent = ''
+                    }, 3000)
+                }
+            })
+        }
+        
+        
+        // Disable btn
+        const btn_save_disabled = document.getElementById('btn_save_disabled')
+
+        if (btn_save_disabled){
+            btn_save_disabled.addEventListener('click', (e)=>{
+                document.getElementById('messaage').classList.remove('d-none')
+
+                setTimeout(()=>{
+                    document.getElementById('messaage').classList.add('d-none')
+                }, 5000)
+            })
+        }
 
 
 

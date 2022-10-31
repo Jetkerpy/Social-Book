@@ -218,10 +218,14 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="mt-5 d-md-block d-none  float-center mb-3">
+                    <div class="mt-2 d-md-block  float-center mb-3">
                         <a class="book_owner_profile_a" href="{% url 'myaccount:my-account' book.owner.pk %}"><img class="book_owner_profile" src="{{ book.owner.profile_img.url}}" alt="">
                             @{{ book.owner }}
-                        </a><br>
+                        </a><br><br>
+                        {% if request.user == book.owner %}
+                        <a href="{% url 'book:update' book.name %}" class="btn btn-outline-success">Update book</a>
+                        <a href="{% url 'book:delete' book.name %}" class="btn btn-outline-danger">Delete book</a>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="col-md-6">

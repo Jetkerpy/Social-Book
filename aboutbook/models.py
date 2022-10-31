@@ -52,7 +52,7 @@ class Discuss(models.Model):
 
 
     def __str__(self):
-        return self.book.name
+        return f'{self.book.name} - {str(self.count)}'
 
 
 

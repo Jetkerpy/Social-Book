@@ -13,6 +13,48 @@ from comment.models import ParentComment, ChildComment
 
 
 
+#delete book
+
+def delete_book_view(request, book):
+    book = Book.objects.get(name = book)
+    form = BookForm(request.POST or None, instance=book)
+    if request.method == 'POST':
+        book.delete()
+
+        messages.success(request, 'Your book successfuly deleted!')
+        return redirect('/')
+
+    context = {
+        'book': book
+    }
+    return render(request, 'book/delete_book.html', context)
+    
+
+
+
+
+
+
+
+#book update view function
+@login_required
+def update_book_function(request, book):
+    user = request.user
+    book = Book.objects.get(name = book)
+    
+    form = BookForm(request.POST or None, request.FILES or None, instance=book)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, f"\"{book.name}\" book succesfully updated!")
+        return redirect('book:detail', book.pk)
+
+
+    context = {
+        'form': form,
+        'book': book
+    }
+    return render(request, 'book/update_book.html', context)
 
 
 
@@ -21,9 +63,7 @@ from comment.models import ParentComment, ChildComment
 
 
 
-
-
-
+#book detail view function
 def book_detail_view(request, *args, **kwargs):
     user = request.user
     pk = kwargs.get('pk')

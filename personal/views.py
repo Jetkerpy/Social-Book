@@ -19,9 +19,46 @@ from reportlab.lib.pagesizes import letter
 
 from django.core.paginator import Paginator, EmptyPage
 
+from chat.models import DiscussBook
+
+from django.db.models import Q
+
+
 
 
 # Create your views here.
+
+
+#search function
+
+def search_view(request):
+    q = request.GET.get('q') if request.GET.get('q') != '' else None
+    if q is not None:
+        books = Book.objects.filter(
+            Q(name__icontains = q)|
+            Q(owner__username__icontains = q)|
+            Q(tag__title__icontains = q)|
+            Q(language__icontains = q)
+        )
+
+    else:
+        return redirect('/')
+
+
+    # active users
+    active_users = [user for user in Account.objects.all() if user.book_set.all().count() >=3]
+    #books tags
+    tags = Tag.objects.all()
+
+
+    context = {
+        'books': books,
+        'active_users': active_users,
+        'tags': tags
+    }
+    return render(request, 'search.html', context)
+
+
 
 
 
@@ -98,7 +135,10 @@ def home(request):
 
       
         
-        
+    #get discuss if is_ready = True bols
+    discuss_books = DiscussBook.objects.all().filter(is_ready = True, is_start = False).first()
+    #get discuss room
+    discusss = DiscussBook.objects.filter(is_start = True).first()
 
    
 
@@ -112,7 +152,9 @@ def home(request):
         'message': messages,
         'robot': robot,
         'count': count,
-        'questions': questions
+        'questions': questions,
+        'discuss': discuss_books,
+        'discusss': discusss
         
     }
 

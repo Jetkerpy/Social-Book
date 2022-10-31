@@ -9,7 +9,7 @@
             <a href="{% url 'home'%}" class="text-dark p-2">My Social <span class="text-warning">Book</span><i class="mx-2 fa-solid fa-book text-info fs-3"></i></a>
         </h5>
         <!-- Column2 -->
-        <form action="" method="get" class="justify-content-center mx-3">
+        <form action="{% url 'search'%}" method="get" class="justify-content-center mx-3">
             <input type="text" class="form-control" name="q" placeholder="Search Book....">
         </form>
         <!-- Column3 -->
@@ -84,7 +84,7 @@
         </h5>
         <!-- column2 -->
         <div class="col-sm-10 d-flex">
-          <form action="" class="justify-content-center" >
+          <form action="{% url 'search' %}" class="justify-content-center" >
             <input type="text" class="form-control" name="q" placeholder="Search..." id="id_search_small">
         </form>
 

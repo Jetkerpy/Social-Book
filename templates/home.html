@@ -104,10 +104,119 @@
     .question_question_max_h{
         max-height: 300px;
     }
+    .discuss_book{
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 9px;
+    }
+    .yeaaaa{
+        font-size: 16px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-family: sans-serif;
+        color: #007185;
+    }
 
+    
+
+    .start_discuss_book_image{
+       
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 2px solid #c7511f;
+    }
+    
  
     
 </style>
+
+
+<!-- Start discussion room -->
+    {% if discusss %}
+    <div class="row mt-2 mb-2">
+        <div class="col-md-12 card p-2">
+            <h3 class="text-center font-monospace">Discussion Room</h3>
+            <div class="row">
+                <div class="col-md-10 text-center">
+                    {% if discusss.book.image %}
+                        <img class="start_discuss_book_image" src="{{ discusss.book.image.url }}" alt="{{ discusss.book.name }}">
+                    
+                    {% endif %}
+                    <span class="font-monospace">{{ discusss.book.name }}</span>
+                    <a href="{% url 'chat:room' discusss.book.name %}" class="btn btn-outline-success">Check out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+<!-- /// -->
+
+<!-- Starting time for discussion book -->
+    {% if discuss %}
+        <div class="row mt-2 mb-3">
+            
+
+                {% if discuss.is_start %}
+
+
+
+                {% else %}
+                    <!-- tomende discuss.when|json_script:"timestamp" yagniy timestamp ozgeriwshini javascripke otedi -->
+                    {{ discuss.when|json_script:'timestamp'}}
+
+                  
+                        <div class="card shadow mb-2 col-md-12 p-2">
+                            <h2 class="text-center font-monospace">We are starting soon!</h2>
+                            <div id="show_time" class="text-center d-flex justify-content-around">
+                                <div class="yeaaaa">
+                                    <small id="DAY" class="text-black"></small>
+                                    <p >day</p>
+                                </div>
+                                <div class="yeaaaa">
+                                    <small id="HOUR" class="text-black"></small>
+                                    <p>hour</p>
+                                </div>
+                                <div class="yeaaaa">
+                                    <small id="MINUTE" class="text-black"></small>
+                                    <p>minute</p>
+                                </div>
+                                <div class="yeaaaa">
+                                    <small id="SECOND" class="text-black"></small>
+                                    <p class="yeaaaa">second</p>
+                                </div>
+                                
+                                <!-- <small id="BookName" data-book-name="{{ discuss.book.name }}"  class="d-none">{{ discuss.when|timeuntil}}</small> -->
+                                <small id="BookName"  class="d-none">{{ discuss.book.name }}</small>
+                                
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 text-center">
+                                    <img class="discuss_book" src="{{ discuss.book.image.url}}" alt="{{ discuss.book.name}}">
+                                    <p   class="text-muted font-monospace">{{ discuss.book.name }}</p>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <h4 class="active_users">Tomende discussion qatnasiwshilari!</h4>
+                                    <div class="d-flex justify-content-center">
+                                        {% for user in discuss.discussion_users.all%}
+                                            <div class="me-3">
+                                                <img class="book_of_owner_image" src="{{ user.profile_img.url }}" alt="{{ user.username}}">
+                                                <p class="profile">@{{ user.username}}</p>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+          
+        </div>
+
+    {% endif %}
+
+<!-- / -->
 
 
 <!-- / styles -->
@@ -126,202 +235,13 @@
 
     <div class="row mt-3">
         <div class="col-md-3">
-            
-            <div class="list-group d-md-block d-none">
-                <a href="{% url 'home' %}?q=all" class="list-group-item list-group-item-action active" aria-current="true">
-                  Barliq kitaplar
-                </a>
-                {% for tag in tags %}
-                <div class="d-flex justify-content-between align-items-start list-group-item">
-                    <a href="{% url 'home' %}?q={{ tag.title }}" class="text-decoration-none book_of_name">{{ tag.title }}</a>
-                    <span class="badge bg-primary rounded-pill">{{ tag.count_book }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            
+            {% include 'all_books.html'%}
         </div>
         <div class="col-sm-8 col-md-7">
-            <div class="row g-3 justify-content-md-center">
-                {% for book in books %}
-                <div class="p-2 me-1 col-lg-5 col-md-10 col-sm-12 card shadow">
-                    <img  src="{{ book.image.url }}" class="rounded card-img-top book-image  img-thumbnail" alt="{{ book.name }}">
-                    <div class="card-body">
-                        <a href="{% url 'book:detail' book.pk %}" class="text-decoration-none book_of_name">
-                            <h6 class="card-title text-center"><strong>{{ book.name }}</strong></h6>
-                        </a>
-                        
-                        <!-- Star Rating -->
 
+            {% include 'feed_books.html'%}
 
-                        {% if book.get_star_protsent == 0 %}
-                        <div class="dropdown">
-                            <button class="book_of_name dropdown_btn dropdown-toggle"  data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="{% static '0-rating.png'%}" class="rating-img" alt="rating">
-                                <span class="ms-2 fs-6">{{ book.get_star_users_count }}</span>
-                            </button>
-                            <div class="dropdown-menu menu p-3">
-                                <h6 class="time-book"><img src="{% static '0-rating.png'%}" class="rating-img_2" alt="rating">0 out of 5</h6>
-                                <h4 class="global_rating">0 global ratings</h4>
-                                <div>
-                                    <a class="dropdown-item d-flex justify-content-between" href="#">
-                                        <span>5 star</span>
-                                        <div class="parent_back" >
-                                           
-                                        </div>
-                                        <span>0 %</span>
-                                    </a>
-                                    <a class="dropdown-item d-flex justify-content-between" href="#">
-                                        <span>4 star</span>
-                                        <div class="parent_back">
-                                            
-                                        </div>
-                                        <span>0 %</span>
-                                    </a>
-                                    <a class="dropdown-item d-flex justify-content-between" href="#">
-                                        <span>3 star</span>
-                                        <div class="parent_back">
-                                          
-                                        </div>
-                                        <span>0 %</span>
-                                    </a>
-                                    <a class="dropdown-item d-flex justify-content-between" href="#">
-                                        <span>2 star</span>
-                                        <div class="parent_back">
-                                        
-                                        </div>
-                                        <span>0 %</span>
-                                    </a>
-                                    <a class="dropdown-item d-flex justify-content-between" href="#">
-                                        <span>1 star</span>
-                                        <div class="parent_back">
-
-                                        </div>
-                                        <span>0 %</span>
-                                    </a>
-                                </div>
-                                
-                            </div>
-                        </div>
-
-                        {% elif book.get_star_protsent < 1.5 %}
-                            <div class="dropdown">
-                                <button class="book_of_name dropdown_btn dropdown-toggle"  data-bs-toggle="dropdown" aria-expanded="false">
-                                    {% if book.get_star_protsent < 2 %}
-                                        <img src="{% static '0.5-rating.png'%}" class="rating-img" alt="rating">
-                                    {% elif book.get_star_protsent < 3%}
-                                        <img src="{% static '2.5-rating.png'%}" class="rating-img" alt="rating">
-                                    {% elif book.get_star_protsent < 4 %}
-                                        <img src="{% static '3.5-rating.png'%}" class="rating-img" alt="rating">
-                                    {% elif book.get_star_protsent < 5 %}
-                                        <img src="{% static '4.5-rating.png'%}" class="rating-img" alt="rating">
-                                    {% endif %}
-                                    
-                                    <span class="ms-2 fs-6">{{ book.get_star_users_count }}</span>
-                                </button>
-                                <div class="dropdown-menu menu p-3">
-                                    <h6 class="time-book"><img src="{% static '0.5-rating.png'%}" class="rating-img_2" alt="rating">{{ book.get_star_protsent}} out of 5</h6>
-                                    <h4 class="global_rating">{{ book.get_star_users_count}} global ratings</h4>
-                                    <div>
-                                        <a class="dropdown-item d-flex justify-content-between" href="#">
-                                            <span>5 star</span>
-                                            <div class="parent_back" >
-                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
-                                                    {% if book.get_five_star == 0 %}  {% else %} i {% endif %}
-                                                </div>
-                                            </div>
-                                            <span>{{ book.get_five_star }}%</span>
-                                        </a>
-                                        <a class="dropdown-item d-flex justify-content-between" href="#">
-                                            <span>4 star</span>
-                                            <div class="parent_back">
-                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
-                                                    {% if book.get_four_star == 0 %}  {% else %} i {% endif %}
-                                                </div>
-                                            </div>
-                                            <span>{{ book.get_four_star }}%</span>
-                                        </a>
-                                        <a class="dropdown-item d-flex justify-content-between" href="#">
-                                            <span>3 star</span>
-                                            <div class="parent_back">
-                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
-                                                    {% if book.get_three_star == 0 %}  {% else %} i {% endif %}
-                                                </div>
-                                            </div>
-                                            <span>{{ book.get_three_star }}%</span>
-                                        </a>
-                                        <a class="dropdown-item d-flex justify-content-between" href="#">
-                                            <span>2 star</span>
-                                            <div class="parent_back">
-                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
-                                                    {% if book.get_two_star  == 0 %}  {% else %} i {% endif %}
-                                                </div>
-                                            </div>
-                                            <span>{{ book.get_two_star }}%</span>
-                                        </a>
-                                        <a class="dropdown-item d-flex justify-content-between" href="#">
-                                            <span>1 star</span>
-                                            <div class="parent_back">
-                                                <div class="child_back" {% if book.get_star_protsent == 0 %} style="width: 0%;" {% elif book.get_star_protsent < 2 %} style="width: 10%;" {% endif %}>
-                                                    {% if book.get_one_star == 0 %}  {% else %} i {% endif %}
-                                                </div>
-                                            </div>
-                                            <span>{{ book.get_one_star }}%</span>
-                                        </a>
-                                    </div>
-                                    
-                                </div>
-                            </div>
-                            
-                        {% endif %}
-          
-
-
-                        <!-- /Star Rating -->
-                        
-                        
-                            <blockquote class="blockquote mb-0">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <a href="{% url 'myaccount:my-account' book.owner.pk%}" class="profile">
-                                        <img src="{{ book.owner.profile_img.url}}" class="book_of_owner_image" alt="{{ book.owner.username}}">
-                                        <span >@{{ book.owner.username}}</span>
-                                    </a>
-                                    <small class="time-book">
-                                        {{book.created|timesince}} ago
-                                    </small>
-                                
-                                </div>
-                                <footer class="blockquote-footer mt-3"><cite title="Source Title">{{ book.feedback }}</cite></footer>
-                            </blockquote>
-                        
-                    </div>
-                    <div class="card-footer d-flex justify-content-around">
-                        <div class="">
-                            <a href="{% url 'download_as_pdf' book.name %}" class="book_of_footer me-3"><i class="fa-solid fa-download fs-5"></i></a>
-                            <p class="icons">download</p>
-                        </div>
-                        <div>
-                            <a href="" class="book_of_footer me-3"><i class="fa-solid fa-share fs-5"></i></a>
-                            <p class="icons">share</p>
-                        </div>
-                        <div>
-                            
-                            <a href="{% url 'myaccount:save' request.user book.name%}" class="book_of_footer me-3"><i class="fa-regular fa-bookmark fs-5"></i></a>
-                            <p class="icons">save</p>
-                           
-                          
-                        </div>
-                     
-                        <div>
-                            <a href="#" class="book_of_footer me-3"><i class="fa-regular fa-eye fs-5"></i></a>
-                            <p class="icons">{% if book.count_views > 1%} views {% else %} view {% endif %} {{ book.count_views}}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {% empty %}
-                    <h3>No Books</h3>
-                {% endfor %}
-            </div>
+            
             <div class="justify-content-center mt-5">
                 <nav aria-label="Page navigation example">
                     <ul class="pagination">
@@ -339,25 +259,14 @@
         </div>
 
         <div class="col-md-2 col-sm-4 ">
-            <div class="card p-2">
-                <p class="text-center active_users">Active paydalaniwshilar</p>
-                {% for active in active_users %}
-                <a href="{% url 'myaccount:my-account' active.pk%}" class="profile mb-3">
-                    <img src="{{ active.profile_img.url}}" class="book_of_owner_image" alt="{{ active.username}}">
-                    <span>@{{ active.username}}</span>
-                </a>
-                        
-                {% endfor %}
-
-
-            </div>
+            {% include 'active_users.html'%}
 
 
             <!-- RoBoT Process -->
-            <div class="position-fixed mt-3  d-sm-none d-md-block">
+            <div class="position-sticky mt-3  d-sm-none d-md-block">
                 <a href="" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight">
                     <img class="questions_book position-relative" src="{% static 'questions.webp'%}" alt="about">
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-6">
+                    <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-danger fs-6">
                         {{ count }}
                     </span>
                 </a>
@@ -520,6 +429,89 @@
                 row.classList.add('d-none')
         }
         }
+
+       
+
+        
+
+        
+        
+        // Tomendegi discussion time
+       
+        const get_time = document.getElementById('timestamp')
+        
+
+        if (get_time){
+            const x = setInterval(()=>{
+            const timestamp = JSON.parse(document.getElementById('timestamp').textContent)
+            const StartDate = new Date(timestamp).getTime()
+            const nowTime = new Date().getTime()
+            const timeSpan = StartDate - nowTime;
+
+            // tomende bul qaysi obj waqti tawsilganlardi push qiladi
+            // const BookName = document.querySelectorAll('#BookName')
+            // const BookNames = []
+            // BookName.forEach((obj)=>{
+            //     if (obj.textContent.includes('0')){
+            //         BookNames.push(obj.getAttribute('data-book-name'))
+            //     }
+            // })
+            
+            
+            
+            if (timeSpan <= 0){
+                const book_name = document.getElementById('BookName').textContent
+                
+                $.ajax({
+                    url: "{% url 'chat:start-time'%}",
+                    data: {'book_name': book_name},
+                    type: 'GET',
+                    success: function(success){
+                        console.log(success)
+                    },
+                    error: function(error){
+                        console.log(error)
+                    }
+                })
+                
+                
+                clearInterval(x)
+                return
+            }
+
+
+            let days = Math.floor(timeSpan / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((timeSpan % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((timeSpan % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((timeSpan % (1000 * 60)) / 1000);
+
+            document.getElementById('DAY').innerText = days;
+            document.getElementById('HOUR').innerText = hours;
+            document.getElementById('MINUTE').innerText = minutes;
+            document.getElementById('SECOND').innerText = seconds;   
+
+            
+                
+            
+        }, 1000)
+
+        }
+
+                
+
+
+        
+        
+        
+        
+
+        
+
+       
+        
+
+        
+     
 
 
 

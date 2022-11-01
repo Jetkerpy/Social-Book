@@ -52,6 +52,8 @@ def my_account_view(request, *args, **kwargs):
     form = MyImageForm(request.POST or None, request.FILES or None)
     
     if form.is_valid():
+        obj = form.cleaned_data.get('profile_img')
+        print(obj)
         form.save()
         return JsonResponse({'message': 'Works'})
     # / change image

@@ -135,9 +135,10 @@
 <div class="row mt-3 hidden" id="open-modal">
     <div class="card col-md-10 p-3 shadow">
         <div class="d-flex justify-content-between" id="add_hidden">
-            <form action=""  id="image-form">
+            <form action=""  id="image-form" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p }}
+                
             </form>
             <i class="fa-solid fa-x fs-4 me-4 text-danger" id="close-btn"></i>
         </div>

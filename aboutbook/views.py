@@ -3,6 +3,7 @@ from django.contrib import messages
 from book.models import Book
 from account.models import Account
 from notification.models import Notification
+from chat.models import DiscussBook
 
 from .models import (
     Readed,
@@ -217,13 +218,34 @@ def discuss_view(request, *args, **kwargs):
                 get_discuss.count += 1
                 get_discuss.save()
 
-                notification, created = Notification.objects.get_or_create(sender = user, receiver = book.owner, notification_types = 4, book = book)
-                notification.message_text = f'Paydalaniwshi {user} pikir almasiwin ushin qosildi. Endi Chatg\'a {5 - get_discuss.count} - adam qaldi!!'
-                notification.save()
-
                 if get_discuss.count == 5:
-                    notification.message_text = 'Endi sizde Chat baslaw ushin imkaniyat jaratildi!!'
+                    noti, created = Notification.objects.get_or_create(sender = book.owner, receiver = book.owner, book = book, notification_types = 5)
+                    noti.message_text = 'Your room automatically created so you need to add time when you gonna start to discuss!!'
+                    noti.save()
+
+                    discussbook = DiscussBook.objects.filter(owner = book.owner, book = book).exists()
+                    
+                    if not discussbook:
+                        obj = DiscussBook.objects.create(
+                            owner = book.owner,
+                            book = book
+                        )
+                        for user in get_discuss.users.all():
+                            obj.discussion_users.add(user)
+
+                    
+
+
+                else:
+                    notification, created = Notification.objects.get_or_create(sender = user, receiver = book.owner, notification_types = 4, book = book)
+                    notification.message_text = f'Paydalaniwshi {user} pikir almasiwin ushin qosildi. Endi Chatg\'a {5 - get_discuss.count} - adam qaldi!!'
                     notification.save()
+
+
+                
+
+               
+                    
 
 
 

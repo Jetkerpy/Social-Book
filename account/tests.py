@@ -1,7 +1,8 @@
-from tkinter.tix import Tree
+
 from django.test import TestCase
 from django.conf import settings
 from .models import Account
+from .forms import RegisterForm
 
 
 # Create your tests here.
@@ -47,23 +48,4 @@ class AccountTestCase(TestCase):
 
 
 
-
-    # def test_user_validition_error(self):
-    #     try:
-    #         Account.objects.create_user(
-    #             username = 'test2',
-    #             email = '',
-    #             password = 'test2'
-    #         )
-
-    #     except ValueError as error:
-    #         self.assertRaises(type(error))
-
-
-
-    # def test_something(self):
-    #     users = Account.objects.all()
-    #     print(users.last())
-
-    
         

@@ -49,7 +49,9 @@
             {% if request.user.is_authenticated %}
             <div class="dropdown">
                 <button class="rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="{{ request.user.profile_img.url }}" width="60" height="60" style="border-radius: 50%;" alt="">
+                    {% if request.user.profile_img %}
+                    <img src="{{ request.user.profile_img.url }}" width="60" height="60" style="border-radius: 50%;" alt="{{ request.user.username }}">
+                    {% endif %}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-dark">
                   <li>

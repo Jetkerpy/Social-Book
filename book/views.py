@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
 from django.http import JsonResponse
 from .models import Book, Star, Rating, Tag
 from django.contrib import messages
@@ -40,7 +40,7 @@ def delete_book_view(request, book):
 @login_required
 def update_book_function(request, book):
     user = request.user
-    book = Book.objects.get(name = book)
+    book = get_object_or_404(Book.objects.select_related("owner", "tag"), name = book)
     
     form = BookForm(request.POST or None, request.FILES or None, instance=book)
 
@@ -63,65 +63,57 @@ def update_book_function(request, book):
 
 
 
-#book detail view function
-def book_detail_view(request, *args, **kwargs):
+# BOOK DETAIL VIEW GET
+
+def check_is_liked(request, book):
+    """
+    This function help us to know if user liked return True otherwase False
+    """
     user = request.user
-    pk = kwargs.get('pk')
-    book = Book.objects.get(pk = pk)
-
-    #get comments
-    comments = ParentComment.objects.filter(book = book)
-    
-    #aldinnan created etip qoyamiz
-    liked_book, created = Like.objects.get_or_create(book = book)
-    disliked_book, created = Dislike.objects.get_or_create(book = book)
-    
-    recommend_books = Book.objects.filter(tag = book.tag).exclude(name  = book.name)
-    first_book = Book.objects.filter(tag = book.tag).exclude(name  = book.name).first()
-    
     is_liked = False
-    is_disliked = False
-    score = None
-    is_rating = True
-    
-
     if user.is_authenticated:
-        
-        get_rating = book.get_rating(user)
-        
-        if book.get_score(user) != False:
-            score = book.get_score(user).score
-        
-        if get_rating is not None:
-            is_rating = True
+        if book.get_like_or_not(user):
+            is_liked = True
         else:
-            is_rating = False
-        
-        #views 
+            is_liked = False
+    return is_liked
+
+
+def check_is_disliked(request, book):
+    """
+    This function help us to know if user disliked return True otherwase False
+    """
+    user = request.user
+    is_disliked = False
+    if user.is_authenticated:
+        if book.get_dislike_or_not(user):
+            is_disliked = True
+        else:
+            is_disliked = False
+    return is_disliked
+
+
+def add_to_views(user, book):
+    """
+    This function current user is checked detail of the Book object
+    then added user to views
+    """
+    if user.is_authenticated:
         if user not in book.views.all():
             book.views.add(user)
 
-        #define user's like
-        if book.get_like_or_not(user):
-            is_liked = True
 
-        else:
-            is_liked = False
-
-        #define dislike
-        if book.get_dislike_or_not(user):
-            is_disliked = True
-
-        else:
-            is_disliked = False
+def get_comments(book):
+    """
+    This function gives Book's comment
+    """
+    return ParentComment.objects.select_related("user", "book", "parent").prefetch_related("likes", "dislikes").filter(book = book)
 
 
-     
-
-
-    #Comment
-    form = ParentCommentForm()
-    
+def add_to_comment(request, form, book):
+    """
+    This function add to comment when write comment
+    """
     if request.method == 'POST':
         form = ParentCommentForm(request.POST or None)
         user = request.POST.get('user')
@@ -138,26 +130,61 @@ def book_detail_view(request, *args, **kwargs):
             messages.error(request, 'Comment qaldiriw ushin siz dizimnen yamasa loginnen otiwin\'izge tuwri keledi!')
             return redirect('book:detail', book.pk)
 
+
+def get_is_rating(user, book):
+    """
+    This function define user set rating of the book or not
+    """
+    if user.is_authenticated:
+        get_rating = book.get_rating(user)
+        if get_rating is not None:
+            return True
+        return False
+
+
+def get_score(user, book):
+    score = None
+    if user.is_authenticated:
+        if book.get_score(user) != False:
+            score = book.get_score(user).score
+    return score
     
 
 
+def book_detail_view(request, *args, **kwargs):
+    user = request.user
+    pk = kwargs.get('pk')
+    book = get_object_or_404(Book.objects.select_related("owner", "tag").prefetch_related("views", "book_star"), pk = pk)
+
+    # ADD TO VIEWS
+    add_to_views(user, book)
+    # END ADD TO VIEWS
+
+    # COMMENT FORM & ADD TO COMMENT
+    form = ParentCommentForm()
+    add_to_comment(request, form, book)
+    # END COMMENT FORM & ADD TO COMMENT
     
-
-
+    #aldinnan created etip qoyamiz
+    liked_book, created = Like.objects.get_or_create(book = book)
+    disliked_book, created = Dislike.objects.get_or_create(book = book)
+    
+    recommend_books = Book.objects.select_related("tag", "owner").filter(tag = book.tag).exclude(name  = book.name)
+    first_book = Book.objects.filter(tag = book.tag).exclude(name  = book.name).first()
+    
     context = {
         'book': book,
-        'is_rating': is_rating,
-        'score': score,
-        'is_liked': is_liked,
-        'is_disliked': is_disliked,
+        'is_rating': get_is_rating(user, book),
+        'score': get_score(user, book),
+        'is_liked': check_is_liked(request, book),
+        'is_disliked': check_is_disliked(request, book),
         'recommend_books': recommend_books,
         'first_book': first_book,
         'form': form,
-        'comments': comments,
+        'comments': get_comments(book),
     }
-    
     return render(request, 'book/book_detail.html', context)
-
+# END BOOK DETAIL VIEW GET
 
 
 
@@ -172,14 +199,14 @@ def star_rating_view(request):
         book_name = request.POST.get('book')
         score = int(request.POST.get('score'))
         book = Book.objects.filter(name = book_name).first()
-        rating, created = Rating.objects.get_or_create(book = book, user = user)
-        star, created = Star.objects.get_or_create(book = book, star = score)
+        rating, created = Rating.objects.select_related("book", "user").get_or_create(book = book, user = user)
+        star, created = Star.objects.select_related("book").prefetch_related("users").get_or_create(book = book, star = score)
 
         if rating.score != score:
             rating.score = score
             rating.save()
 
-            define_users = Star.objects.filter(book = book).exclude(star = score)
+            define_users = Star.objects.prefetch_related("users").filter(book = book).exclude(star = score)
         
             if define_users.exists():
                 for obj in define_users:
@@ -189,9 +216,14 @@ def star_rating_view(request):
 
             if user not in star.users.all() and star.star != score:
                 star.users.add(user)
-
-            else:
+                star.percentage_of_score = 0.1
+                star.save()
+                
+            elif user not in star.users.all() and star.star == score:
                 star.users.add(user)
+                star.percentage_of_score = float(star.percentage_of_score) + 0.1
+                star.save()
+    
 
     return JsonResponse({'data': 'Saved'})
 

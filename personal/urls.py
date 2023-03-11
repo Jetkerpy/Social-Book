@@ -1,4 +1,5 @@
 from django.urls import path
+from django.conf.urls import handler404, handler500
 from .views  import (
     home,
     accept_to_friends_list_view,
@@ -21,3 +22,5 @@ urlpatterns = [
 
     
 ]
+handler404 = 'personal.views.handler404'
+handler500 = 'personal.views.server_error'

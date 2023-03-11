@@ -5,6 +5,7 @@ from notification.models import Notification
 from myaccount.models import MyAccount
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse
+from django.db.models import Count
 
 from book.models import (
     Tag,
@@ -28,6 +29,15 @@ from django.db.models import Q
 
 # Create your views here.
 
+# 404 PAGE
+def handler404(request, exception):
+    return render(request, '404.html', status=404)
+# END 404 PAGE
+
+# 500 SERVER ERROR
+def server_error(request):
+    return render(request, '500.html', status=500)
+# END 500 SERVER ERROR
 
 #search function
 
@@ -46,7 +56,7 @@ def search_view(request):
 
 
     # active users
-    active_users = [user for user in Account.objects.all() if user.book_set.all().count() >=3]
+    active_users = [user for user in Account.objects.all() if user.owner_of_book.all().count() >=3]
     #books tags
     tags = Tag.objects.all()
 
@@ -61,39 +71,54 @@ def search_view(request):
 
 
 
+# ACTIVE USERS GET NUMBER
+def get_active_user():
+    """
+    This function help us to know how many users has been published book
+    active_users = [user for user in Account.objects.all() if user.owner_of_book.all().count() >=3]
+    """
 
+    active_users = Account.objects.annotate(count_nums = Count("owner_of_book")).filter(count_nums__gte = 3)
+    return active_users
+# END ACTIVE USERS GET NUMBER
+
+# GET TAGS OF THE BOOK
+def get_tags():
+    return Tag.objects.annotate(nums_of_book = Count("tag_of_book")).all()
+# END GET TAGS OF THE BOOK
+
+# FILTER BOOKS OR NOT
+def get_books(request):
+    q = request.GET.get('q')
+    if q == 'all' or q == None:
+        obj = Book.objects.select_related("owner", "tag").prefetch_related("book_star", "views").all()
+        return obj
+    return Book.objects.select_related("owner", "tag").prefetch_related("book_star", "views").filter(tag__title = q)
+# END FILTER BOOKS OR NOT
+
+
+
+# HOME VIEWS
 def home(request):
     user = request.user
     #Notifications 
     notification = Notification.objects.filter(receiver__username = user).first()
     counting_how_many = Notification.objects.filter(receiver__username = user, is_seen = False).count()
 
-    # book's tags
-    tags = Tag.objects.all()
-    # / book's tags
+
 
     # filter book
-    q = request.GET.get('q')
-    if q == 'all' or q == None:
-         books = Book.objects.all()
-         
-    else:
-        books = Book.objects.filter(tag__title = q)
-
-    # active users
-    active_users = [user for user in Account.objects.all() if user.book_set.all().count() >=3]
+    books = get_books(request)
+   
 
     # Paginations
     p = Paginator(books, 5)
-    
     page_number = request.GET.get('page', 1)
 
     try:
         pages = p.page(page_number)
     except EmptyPage:
         pages = p.page(1)
-
-
 
 
     # Robot process
@@ -103,7 +128,7 @@ def home(request):
     questions = None
     messages = {}
     if request.user.is_authenticated:
-        book = Book.objects.filter(owner = request.user).count()
+        book = Book.objects.select_related("owner").filter(owner = request.user).count()
         if book == 0:
             request.session['me'] = True
         
@@ -111,9 +136,9 @@ def home(request):
            
         request.session['me'] = False
 
-        questions = Question.objects.filter(is_answered = False).exclude(user = request.user)
-        count += questions.count()
-        if questions.count() == 1:
+        questions = Question.objects.select_related("user").filter(is_answered = False).exclude(user = request.user)
+        count += len(questions)
+        if len(questions) == 1:
             messages['question'] = 'we have question to which there are no answer'
 
         else:
@@ -136,9 +161,9 @@ def home(request):
       
         
     #get discuss if is_ready = True bols
-    discuss_books = DiscussBook.objects.all().filter(is_ready = True, is_start = False).first()
+    discuss_books = DiscussBook.objects.select_related("owner", "book", "user").prefetch_related("discussion_users").filter(is_ready = True, is_start = False).first()
     #get discuss room
-    discusss = DiscussBook.objects.filter(is_start = True).first()
+    discusss = DiscussBook.objects.select_related("owner", "book", "user").prefetch_related("discussion_users").filter(is_start = True).first()
 
    
 
@@ -146,9 +171,9 @@ def home(request):
     context = {
         'noti': notification,
         'how_may': counting_how_many,
-        'tags': tags,
+        'tags': get_tags(),
         'books': pages,
-        'active_users': active_users,
+        'active_users': get_active_user(),
         'message': messages,
         'robot': robot,
         'count': count,

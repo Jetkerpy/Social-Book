@@ -224,10 +224,10 @@
     <!-- for tags small screen -->
         <div class="d-sm-block d-md-none ms-4">
             <a href="{% url 'home' %}?q=all" class="profile pe-3">
-                Barliq kitaplar
+                All Books
             </a>
             {% for tag in tags %}
-                <a href="{% url 'home' %}?q={{ tag.title }}" class="profile pe-3">{{ tag.title }} <span class="badge bg-primary">{{ tag.count_book }}</span></a>
+                <a href="{% url 'home' %}?q={{ tag.title }}" class="profile pe-3">{{ tag.title }} <span class="badge bg-primary">{{ tag.nums_of_book }}</span></a>
             {% endfor %}
         </div>
 

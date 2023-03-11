@@ -11,12 +11,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-from environs import Env
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-#environment variables
-
-env = Env()
-env.read_env()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,8 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-n&w&38o!i_kc=*7p-h33_)8ug^_jnk(4q&(iibr&w*6=ilsudv'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
+DEBUG = int(os.environ.get("DEBUG", default=0))
+PRODUCTION = int(os.environ.get('PRODUCTION', default=1))
 ALLOWED_HOSTS = ['.pythonanywhere.com', '127.0.0.1']
 
 AUTH_USER_MODEL = 'account.Account'
@@ -47,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    "debug_toolbar",
 
 
     # Local appps
@@ -71,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -142,27 +142,27 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
-
-# STATICFILES_DIRS = [
-#     str(BASE_DIR.joinpath("static"))
-# ]
-
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
 
 
 
-STATIC_ROOT = str(BASE_DIR / 'staticfiles')
-
-MEDIA_ROOT = BASE_DIR / 'static'
-MEDIA_URL = '/image/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# INTERNAL_IPS = [
+#     "127.0.0.1",
+# ]

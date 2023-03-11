@@ -1,7 +1,6 @@
-from this import d
 from django.db import models
 from account.models import Account
-
+from django.db.models import Count, Sum
 from .validators import validate_language
 # Create your models here.
 
@@ -15,17 +14,18 @@ class Tag(models.Model):
     def __str__(self):
         return self.title
 
-
-    @property
-    def count_book(self):
-        return self.book_set.all().count()
+    # TOMENDEGI PROPERTY METHOD OTE JAMAN SEBEBI HITS TO DB 
+    # @property
+    # def count_book(self):
+    #     #return self.tag_of_book.all().count()
+    #     return len(self.tag_of_book.all())
 
 
 
 
 class Book(models.Model):
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE)
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, null=True, blank=True)
+    owner = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="owner_of_book")
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, null=True, blank=True, related_name="tag_of_book")
     language = models.CharField(max_length=5, validators=[validate_language])
     name = models.CharField(max_length=200)
     subtitle = models.TextField()
@@ -40,18 +40,12 @@ class Book(models.Model):
 
 
 
+    def __str__(self):
+        return f"{self.owner.username}.Book is {self.name} and Tag is {self.tag.title}"
 
 
-
-
-
-
-
-
-
-    #views as how many people checked this book
-    #like
-    #dislike
+    class Meta:
+        ordering = ['-created', '-updated']
 
 
 
@@ -101,27 +95,29 @@ class Book(models.Model):
 
 
 
-    #define like or not
-
+    # define like or not
     def get_like_or_not(self, user):
-        like = self.like_book.all().first()
+        like = self.like_book.prefetch_related("users").all().first()
         if user in like.users.all():
+            return True
+        return False
+
+
+    # define dislike or not
+    def get_dislike_or_not(self, user):
+        dislike = self.dislike_book.prefetch_related("users").all().first()
+        if user in dislike.users.all():
             return True
         return False
 
 
 
     def get_like_counter(self):
-        like = self.like_book.all().first()
+        like = self.like_book.prefetch_related("users").all().first()
         return like.users.all().count()
 
 
-    #define dislike or not
-    def get_dislike_or_not(self, user):
-        dislike = self.dislike_book.all().first()
-        if user in dislike.users.all():
-            return True
-        return False
+    
 
 
 
@@ -146,12 +142,7 @@ class Book(models.Model):
     def get_star_protsent(self):
         if self.get_star_users_count():
             get_how_many = self.get_star_users_count() * 0.1
-            if get_how_many < 1:
-                return get_how_many + 1
-            
             return get_how_many + 1
-
-        
         return 0
 
 
@@ -163,37 +154,23 @@ class Book(models.Model):
         
 
 
-    def __str__(self):
-        return f"{self.owner.username}.Book is {self.name} and Tag is {self.tag.title}"
-
-
-
-    class Meta:
-        ordering = ['-created', '-updated']
+    
 
 
 
 
     def get_score(self, user):
-        if self.book_rating.all().filter(user = user).exists():
-            return self.book_rating.all().filter(user = user).first()
-
+        if self.book_rating.select_related("user").filter(user = user).exists():
+            return self.book_rating.select_related("user").filter(user = user).first()
         return False
 
 
     
     def get_rating(self, user):
-        return self.book_rating.all().filter(user = user).first()
+        return self.book_rating.select_related("user").filter(user = user).first()
 
 
 
-    # filter star bul jerde bizler rating filterlep alamiz yagniy 1, 2, 3, 4, 5
-    def get_filter_star(self, star):
-        star = self.book_star.all().filter(star = star).first()
-        if star is not None:
-            return star
-
-        return 0
 
 
 
@@ -204,85 +181,120 @@ class Book(models.Model):
         users = get_star.users.all().count() or None
         if users is not None:
             return users
-        
         return 0
 
 
-    #this method gives yagniy bul jerde userdin sanina qarap protsenttin shigarip beredi
-
-    def get_users_protsent_of_rating(self, number):
-        if number != 0:
-            protsent = number * 0.1
-            if protsent < 1:
-                return protsent + 1
-            
-            return protsent + 1
-        
+    # NEW METHOD FOR RATING STAR GET
+    def get_percentage_of_star(self):
+        # obj = self.book_star.aggregate(Sum('percentage_of_score'))['percentage_of_score__sum'] or 0
+        # return obj
+        obj = self.book_star.all()
+        if obj:
+            return sum([x.percentage_of_score for x in obj]) 
         return 0
-
-
-
-
-    # get 5 star how many reviews
-    def get_five_star(self):
-        star = self.get_filter_star(5)
-        if star != 0:
-            get_num = self.get_filter_users(star.star)
-            return self.get_users_protsent_of_rating(get_num)
-        
-        return 0
-
 
     
 
-    # get 4 star
-    def get_four_star(self):
-        star = self.get_filter_star(4)
-        if star != 0:
-            get_num = self.get_filter_users(star.star)
-            return self.get_users_protsent_of_rating(get_num)
-        
+    def get_users_of_star(self):
+        return int(self.get_percentage_of_star() * 10)
+
+
+
+    def get_filter_star_(self, star):
+        star = self.book_star.filter(star = star).first() or None
+        return star
+
+    
+    
+    def get_five_of_star(self):
+        if hasattr(self, '_five_of_star'):
+            return self._five_of_star
+        star = self.book_star.select_related('book').filter(star=5).first()
+        if star:
+            self._five_of_star = star.percentage_of_score
+        else:
+            self._five_of_star = 0
+        return self._five_of_star
+
+
+
+    # def get_five_of_star(self):
+    #     obj = self.get_filter_star_(5)
+    #     if obj:
+    #         return obj.percentage_of_score
+    #     return 0
+
+
+    def get_four_of_star(self):
+        obj = self.get_filter_star_(4)
+        if obj:
+            return obj.percentage_of_score
+        return 0
+
+
+    def get_three_of_star(self):
+        obj = self.get_filter_star_(3)
+        if obj:
+            return obj.percentage_of_score
+        return 0
+
+
+    def get_two_of_star(self):
+        obj = self.get_filter_star_(2)
+        if obj:
+            return obj.percentage_of_score
+        return 0
+
+
+    def get_one_of_star(self):
+        obj = self.get_filter_star_(1)
+        if obj:
+            return obj.percentage_of_score
         return 0
 
 
 
 
-
-    # get 3 star
-    def get_three_star(self):
-        star = self.get_filter_star(3)
-        if star != 0:
-            get_num = self.get_filter_users(star.star)
-            return self.get_users_protsent_of_rating(get_num)
-        
+    def get_five_of_star_for_style_width(self):
+        obj = self.get_filter_star_(5)
+        if obj:
+            return int(obj.percentage_of_score * 10)
         return 0
 
 
 
-
-
-    # get 2 star
-    def get_two_star(self):
-        star = self.get_filter_star(2)
-        if star != 0:
-            get_num = self.get_filter_users(star.star)
-            return self.get_users_protsent_of_rating(get_num)
-        
+    def get_four_of_star_for_style_width(self):
+        obj = self.get_filter_star_(4)
+        if obj:
+            return int(obj.percentage_of_score * 10)
         return 0
 
 
 
-
-
-
-    # get 1 star
-    def get_one_star(self):
-        star = self.get_filter_star(1)
-        if star != 0:
-            get_num = self.get_filter_users(star.star)
-            return self.get_users_protsent_of_rating(get_num)
-        
+    def get_three_of_star_for_style_width(self):
+        obj = self.get_filter_star_(3)
+        if obj:
+            return int(obj.percentage_of_score * 10)
         return 0
+
+
+
+    def get_two_of_star_for_style_width(self):
+        obj = self.get_filter_star_(2)
+        if obj:
+            return int(obj.percentage_of_score * 10)
+        return 0
+
+
+
+    def get_one_of_star_for_style_width(self):
+        obj = self.get_filter_star_(1)
+        if obj:
+            return int(obj.percentage_of_score * 10)
+        return 0
+
+    # END NEW METHOD FOR RATING STAR GET
+
 
 
 
@@ -300,6 +312,7 @@ class Star(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='book_star')
     star = models.IntegerField(choices=CHOICE_STAR, default=0)
     users = models.ManyToManyField(Account, related_name='star_users', blank=True)
+    percentage_of_score = models.DecimalField(max_digits=5, decimal_places=1, default=0)
 
 
     def __str__(self):

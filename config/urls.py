@@ -25,7 +25,6 @@ urlpatterns = [
     #url(r'^static/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}),
 
     path('admin/', admin.site.urls),
-    #path('__debug__/', include('debug_toolbar.urls')),
     #url(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 
     path('', include('personal.urls')),
